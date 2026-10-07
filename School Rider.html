@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>School Rider</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#EAF1FF;--card:#fff;--ink:#0B2250;--mute:#5B6E94;--blue:#1E5BFF;--deep:#123FB8;--line:#D3E0FF;--red:#E5384B;--ok:#16A34A}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0B1633;--card:#13224A;--ink:#EAF1FF;--mute:#9DB1DD;--line:#223566}}
+:root[data-theme="dark"]{--bg:#0B1633;--card:#13224A;--ink:#EAF1FF;--mute:#9DB1DD;--line:#223566}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif}
+header{background:var(--blue);color:#fff;padding:18px 16px 14px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+header h1{margin:0;font-size:26px;font-weight:700}
+#net{font-size:12px;opacity:.85}
+.tabs{display:flex;gap:8px;margin-top:10px}
+.tabs button{flex:1;border:0;border-radius:20px;padding:9px;font:700 14px Arial;background:rgba(255,255,255,.18);color:#fff;cursor:pointer}
+.tabs button.on{background:#fff;color:var(--blue)}
+main{max-width:640px;margin:0 auto;padding:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.big{border:0;border-radius:16px;padding:16px 8px;font:700 17px Arial;background:var(--blue);color:#fff;cursor:pointer;min-height:64px}
+.big.red{background:var(--red)}
+.big.alt{background:var(--deep)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #FFB020;outline-offset:2px}
+.kid{display:flex;gap:12px;align-items:center}
+.av{width:48px;height:48px;border-radius:50%;background:var(--blue);color:#fff;font:700 18px/48px Arial;text-align:center;flex:none;overflow:hidden;background-size:cover;background-position:center}
+.kid h3{margin:0;font-size:16px}.kid small{color:var(--mute)}
+.tl{margin:10px 0 0;padding:0;list-style:none;font-size:13px}
+.tl li{display:flex;justify-content:space-between;padding:4px 0;border-top:1px solid var(--line);color:var(--mute)}
+.tl li.done{color:var(--ink);font-weight:700}.tl li.done b{color:var(--ok)}
+.act{border:0;border-radius:12px;padding:10px 14px;font:700 14px Arial;background:var(--blue);color:#fff;cursor:pointer;margin-left:auto}
+.act[disabled]{background:var(--line);color:var(--mute);cursor:default}
+.ghost{background:none;border:1px solid var(--line);color:var(--mute);border-radius:10px;padding:6px 10px;cursor:pointer;font:13px Arial}
+input,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:15px Arial;margin-bottom:8px}
+h2{font-size:18px;margin:4px 0 10px}
+.alert{background:var(--red);color:#fff;border-radius:14px;padding:12px;margin-bottom:12px;font-weight:700}
+.mapwrap{overflow-x:auto}
+svg{width:100%;height:auto;background:#DCE8FF;border-radius:14px;display:block}
+.stats{display:flex;justify-content:space-between;font-size:14px;margin-top:8px}.stats b{font-size:18px;color:var(--blue)}
+.row{display:flex;justify-content:space-between;padding:7px 0;border-top:1px solid var(--line);font-size:14px}
+dialog{border:0;border-radius:18px;padding:20px;max-width:340px;background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(5,15,50,.6)}
+.hide{display:none}
+</style></head><body>
+<header><h1>School Rider</h1><div id="net"></div>
+<div class="tabs" role="tablist"><button data-r="parent" class="on">Parent</button><button data-r="driver">Driver</button><button data-r="kid">Kid</button></div></header>
+<main>
+<div id="alerts"></div>
+<section id="v-home">
+ <div class="grid">
+  <button class="big" data-go="track">Track School Bus</button>
+  <button class="big alt" data-go="route">View Bus Route</button>
+  <button class="big alt" data-go="info">Driver Information</button>
+  <button class="big red" id="sos">Emergency Alert</button>
+ </div>
+ <div id="people"></div>
+ <div class="card" id="addbox"><h2>Add a child</h2>
+  <input id="nn" placeholder="Child's name" aria-label="Child's name">
+  <select id="ns" aria-label="School"></select>
+  <select id="nh" aria-label="Home pickup point"></select>
+  <input id="np" type="file" accept="image/*" aria-label="Profile picture">
+  <button class="act" id="addk" style="margin:0">Add child</button></div>
+</section>
+<section id="v-track" class="hide"><button class="ghost" data-go="home">Back</button>
+ <div class="card mapwrap"><svg id="map" viewBox="0 0 400 300" role="img" aria-label="Bus route map"></svg>
+ <div class="stats"><div>Next stop<br><b id="ns2">-</b></div><div>Distance<br><b id="dist">-</b></div><div>Arrives<br><b id="eta">-</b></div></div>
+ <div class="stats"><button class="act" id="trip" style="margin:0">Start trip</button><span id="tmode" style="color:var(--mute);font-size:13px"></span></div></div></section>
+<section id="v-route" class="hide"><button class="ghost" data-go="home">Back</button>
+ <div class="card"><h2>Shortest route</h2><div id="steps"></div><p id="leave" style="color:var(--mute);font-size:14px"></p></div></section>
+<section id="v-info" class="hide"><button class="ghost" data-go="home">Back</button>
+ <div class="card"><div class="kid"><div class="av">MN</div><div><h3>Mr. Martin Nghidinwa</h3><small>Bus driver</small></div></div>
+ <div class="row"><span>Bus</span><b>SR-12</b></div><div class="row"><span>Number plate</span><b>N 4821 ON</b></div>
+ <div class="row"><span>Phone</span><b>081 000 0000</b></div><div class="row"><span>Area</span><b>Ongwediva, Oshana</b></div>
+ <p style="color:var(--mute);font-size:12px">Sample details. Replace with the real driver.</p></div></section>
+</main>
+<dialog id="dlg"><h2>Send emergency alert?</h2><p>Every linked parent is told right away.</p>
+<div style="display:flex;gap:8px"><button class="act" id="yes" style="background:var(--red);margin:0">Send alert</button><button class="ghost" id="no">Cancel</button></div></dialog>
+<script>
+var SCH={A:{n:"Ongwediva Primary",x:330,y:70},B:{n:"Oshana Junior Secondary",x:350,y:230}};
+var HOM={h1:{n:"Extension 5",x:50,y:80},h2:{n:"Heroes Park",x:90,y:200},h3:{n:"Market Road",x:190,y:130},h4:{n:"Church Street",x:150,y:250}};
+var DEPOT={x:30,y:150},KM=0.04,SPEED=30,START=7*60+15;
+var S={role:"parent",mode:"am",kids:[{id:1,name:"Ndapewa",s:"A",h:"h1",st:0,t:{}},{id:2,name:"Tangeni",s:"B",h:"h3",st:0,t:{}},{id:3,name:"Selma",s:"A",h:"h2",st:0,t:{}}],alerts:[],photos:{}};
+try{var z=localStorage.getItem("sr1");if(z)S=JSON.parse(z)}catch(e){}
+function save(){try{localStorage.setItem("sr1",JSON.stringify(S))}catch(e){}}
+var $=function(i){return document.getElementById(i)};
+function now(){return new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}
+function d(a,b){return Math.hypot(a.x-b.x,a.y-b.y)*KM}
+var STEPS={am:["Waiting at home","On the bus","At school"],pm:["At school","On the bus home","Dropped at home"]};
+var LBL={am:["Picked up","Arrived at school"],pm:["Boarded for home","Dropped at home"]};
+function plan(){var pts=[],cur=DEPOT,hs=S.kids.map(function(k){return k.h}).filter(function(v,i,a){return a.indexOf(v)==i}),ss=S.kids.map(function(k){return k.s}).filter(function(v,i,a){return a.indexOf(v)==i});
+ function nn(list,src,tbl,tag){while(list.length){var b=0;list.forEach(function(c,i){if(d(cur,tbl[c])<d(cur,tbl[list[b]]))b=i});var c=list.splice(b,1)[0];pts.push({k:tag,id:c,n:tbl[c].n,x:tbl[c].x,y:tbl[c].y});cur=tbl[c]}}
+ nn(hs,0,HOM,"home");nn(ss,0,SCH,"school");
+ if(S.mode=="pm"){pts.reverse()}return pts}
+var P=[],prog=0,run=false,seg=0,segT=0;
+function path(){P=plan();var a=[DEPOT].concat(P);return a}
+function rtotal(a){var t=0;for(var i=1;i<a.length;i++)t+=d(a[i-1],a[i]);return t}
+function fmt(m){m=Math.round(m);return String(Math.floor(m/60)%24).padStart(2,"0")+":"+String(m%60).padStart(2,"0")}
+function drawMap(){var a=path(),h='<polyline points="'+a.map(function(p){return p.x+","+p.y}).join(" ")+'" fill="none" stroke="#1E5BFF" stroke-width="4" stroke-dasharray="8 6" stroke-linecap="round"/>';
+ Object.keys(HOM).forEach(function(k){h+='<circle cx="'+HOM[k].x+'" cy="'+HOM[k].y+'" r="7" fill="#fff" stroke="#1E5BFF" stroke-width="3"/><text x="'+HOM[k].x+'" y="'+(HOM[k].y-12)+'" font-size="10" text-anchor="middle" fill="#0B2250">'+HOM[k].n+'</text>'});
+ Object.keys(SCH).forEach(function(k){h+='<rect x="'+(SCH[k].x-9)+'" y="'+(SCH[k].y-9)+'" width="18" height="18" rx="4" fill="#123FB8"/><text x="'+SCH[k].x+'" y="'+(SCH[k].y-14)+'" font-size="10" text-anchor="middle" fill="#0B2250">'+SCH[k].n+'</text>'});
+ h+='<g id="bus"><circle r="11" fill="#FFB020" stroke="#fff" stroke-width="3"/><text y="4" font-size="11" text-anchor="middle" font-weight="700">B</text></g>';
+ $("map").innerHTML=h;place(DEPOT.x,DEPOT.y)}
+function place(x,y){$("bus").setAttribute("transform","translate("+x+" "+y+")")}
+function drawRoute(){var a=path(),t=0,h="";
+ a.forEach(function(p,i){if(i==0)return;var l=d(a[i-1],p);t+=l;h+='<div class="row"><span>'+(i)+". "+p.n+(p.k=="school"?" (school)":"")+'</span><b>'+l.toFixed(1)+" km</b></div>"});
+ $("steps").innerHTML=h+'<div class="row"><span>Total</span><b>'+t.toFixed(1)+" km, "+Math.round(t/SPEED*60)+" min</b></div>";
+ var go=START-Math.round(t/SPEED*60)-5;$("leave").textContent=S.mode=="am"?"School starts at 07:15. Leave the depot by "+fmt(go)+" to get there with 5 minutes to spare.":"Afternoon route runs in reverse order."}
+var last=0,T0=0;
+function tick(ts){if(!run){return}var a=path();if(!last)last=ts;var dt=(ts-last)/1000;last=ts;
+ var sp=0.9;segT+=dt*sp;if(seg>=a.length-1){run=false;$("trip").textContent="Start trip";$("ns2").textContent="Done";return}
+ var A=a[seg],B=a[seg+1],L=Math.max(d(A,B),0.01),f=Math.min(segT/(L*1.2),1);
+ place(A.x+(B.x-A.x)*f,A.y+(B.y-A.y)*f);
+ $("ns2").textContent=B.n;$("dist").textContent=(L*(1-f)).toFixed(1)+" km";
+ var rest=L*(1-f);for(var i=seg+1;i<a.length-1;i++)rest+=d(a[i],a[i+1]);
+ $("eta").textContent=fmt(new Date().getHours()*60+new Date().getMinutes()+rest/SPEED*60);
+ if(f>=1){seg++;segT=0}requestAnimationFrame(tick)}
+$("trip").onclick=function(){if(run){run=false;this.textContent="Resume trip";return}
+ if(seg>=path().length-1){seg=0;segT=0}run=true;last=0;this.textContent="Pause trip";requestAnimationFrame(tick)};
+function av(k){var p=S.photos&&S.photos[k.id];return p?'<div class="av" style="background-image:url('+p+')"></div>':'<div class="av">'+k.name.slice(0,2).toUpperCase()+'</div>'}
+function kidCard(k,showAct,showDel){var st=STEPS[S.mode],cur=k.st,l=LBL[S.mode],h='<div class="card"><div class="kid">'+av(k)+'<div><h3>'+k.name+'</h3><small>'+SCH[k.s].n+' / '+HOM[k.h].n+'</small></div>';
+ if(showAct)h+='<button class="act" data-t="'+k.id+'"'+(cur>=2?" disabled":"")+'>'+(cur>=2?"Done":cur==0?"Tick on bus":"Tick "+(S.mode=="am"?"arrived":"dropped"))+'</button>';
+ h+='</div><ul class="tl">';
+ st.forEach(function(s,i){var t=k.t[S.mode+i];h+='<li class="'+(i<=cur&&(i==0||t)?"done":"")+'"><span>'+s+'</span><b>'+(t||"")+'</b></li>'});
+ h+='</ul>'+(showDel?'<div style="margin-top:8px"><button class="ghost" data-del="'+k.id+'">Remove child</button></div>':"")+'</div>';return h}
+function render(){
+ $("net").textContent=navigator.onLine?"Online":"Offline mode: saved on this device";
+ document.querySelectorAll(".tabs button").forEach(function(b){b.classList.toggle("on",b.dataset.r==S.role)});
+ $("alerts").innerHTML=S.alerts.slice(-2).map(function(a){return '<div class="alert">Emergency alert sent at '+a+'</div>'}).join("");
+ var h="";
+ if(S.role=="driver"){h='<div class="card"><h2>Today</h2><div class="stats"><button class="act" data-mode="am" style="margin:0'+(S.mode=="am"?"":";background:var(--line);color:var(--mute)")+'">Morning to school</button><button class="act" data-mode="pm" style="margin:0'+(S.mode=="pm"?"":";background:var(--line);color:var(--mute)")+'">Afternoon home</button></div></div>';
+  S.kids.forEach(function(k){h+=kidCard(k,true,false)})}
+ else if(S.role=="kid"){var k=S.kids[0];h='<div class="card"><h2>Hi '+k.name+'</h2><p style="margin:0;color:var(--mute)">Your bus status</p></div>'+kidCard(k,false,false)}
+ else{S.kids.forEach(function(k){h+=kidCard(k,false,true)})}
+ $("people").innerHTML=h;$("addbox").classList.toggle("hide",S.role!="parent");
+ var A=document.getElementById("ns");if(!A.options.length){A.innerHTML=Object.keys(SCH).map(function(k){return '<option value="'+k+'">'+SCH[k].n+'</option>'}).join("");$("nh").innerHTML=Object.keys(HOM).map(function(k){return '<option value="'+k+'">'+HOM[k].n+'</option>'}).join("")}
+ $("tmode").textContent=S.mode=="am"?"Morning route":"Afternoon route"}
+function show(v){["home","track","route","info"].forEach(function(x){$("v-"+x).classList.toggle("hide",x!=v)});if(v=="track"){run=false;seg=0;segT=0;$("trip").textContent="Start trip";drawMap();$("ns2").textContent="-";$("dist").textContent="-";$("eta").textContent="-"}if(v=="route")drawRoute();window.scrollTo(0,0)}
+document.addEventListener("click",function(e){var t=e.target;
+ if(t.dataset.go)show(t.dataset.go);
+ if(t.dataset.r){S.role=t.dataset.r;save();render()}
+ if(t.dataset.mode){S.mode=t.dataset.mode;S.kids.forEach(function(k){k.st=0});save();render()}
+ if(t.dataset.t){var k=S.kids.filter(function(x){return x.id==t.dataset.t})[0];k.st++;k.t[S.mode+k.st]=now();save();render()}
+ if(t.dataset.del){S.kids=S.kids.filter(function(x){return x.id!=t.dataset.del});save();render()}});
+$("addk").onclick=function(){var n=$("nn").value.trim();if(!n){$("nn").focus();return}
+ var id=Date.now(),k={id:id,name:n,s:$("ns").value,h:$("nh").value,st:0,t:{}},f=$("np").files[0];
+ function fin(){S.kids.push(k);$("nn").value="";$("np").value="";save();render()}
+ if(f){var r=new FileReader();r.onload=function(){var im=new Image();im.onload=function(){var c=document.createElement("canvas");c.width=c.height=96;c.getContext("2d").drawImage(im,0,0,96,96);S.photos=S.photos||{};S.photos[id]=c.toDataURL("image/jpeg",.7);fin()};im.src=r.result};r.readAsDataURL(f)}else fin()};
+$("sos").onclick=function(){$("dlg").showModal()};$("no").onclick=function(){$("dlg").close()};
+$("yes").onclick=function(){S.alerts.push(now());save();$("dlg").close();render()};
+window.addEventListener("online",render);window.addEventListener("offline",render);
+render();
+</script></body></html>
